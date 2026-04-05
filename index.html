@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plateau Moto - Outil de dessin des parcours</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #16213e, #0f3460);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-bottom: 2px solid #e94560;
+        }
+
+        header h1 { font-size: 1.3rem; color: #e94560; }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 7px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+        .btn-draw { background: #e94560; color: white; }
+        .btn-draw.active { background: #ff6b81; box-shadow: 0 0 12px rgba(233,69,96,0.5); }
+        .btn-clear { background: #533483; color: white; }
+        .btn-route { background: #0f3460; color: #e0e0e0; border: 2px solid #e94560; }
+        .btn-route.active { background: #e94560; color: white; }
+        .btn-undo { background: #2d4059; color: white; }
+        .btn-check { background: #0a8754; color: white; font-size: 0.95rem; }
+        .btn-check:hover { background: #06d6a0; color: #1a1a2e; }
+        .btn-show-solution { background: #0a8754; color: white; }
+        .btn-show-solution.active { background: #06d6a0; color: #1a1a2e; }
+
+        select {
+            padding: 7px 12px;
+            border-radius: 6px;
+            border: 2px solid #e94560;
+            background: #16213e;
+            color: #e0e0e0;
+            font-size: 0.85rem;
+        }
+
+        .canvas-container {
+            position: relative;
+            margin: 10px auto;
+            overflow: auto;
+            max-width: 100%;
+            padding: 10px;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+
+        .info-bar {
+            max-width: 1200px;
+            margin: 8px auto;
+            padding: 10px 20px;
+            background: #16213e;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            border-left: 4px solid #e94560;
+        }
+
+        .result-bar {
+            max-width: 1200px;
+            margin: 8px auto;
+            padding: 14px 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: none;
+        }
+
+        .result-bar.success {
+            display: block;
+            background: linear-gradient(135deg, #0a8754, #06d6a0);
+            color: #1a1a2e;
+        }
+
+        .result-bar.partial {
+            display: block;
+            background: linear-gradient(135deg, #c77d00, #ffd166);
+            color: #1a1a2e;
+        }
+
+        .result-bar.fail {
+            display: block;
+            background: linear-gradient(135deg, #8b0000, #e94560);
+            color: white;
+        }
+
+        .result-details {
+            font-size: 0.85rem;
+            font-weight: normal;
+            margin-top: 5px;
+        }
+
+        .legend {
+            max-width: 1200px;
+            margin: 10px auto;
+            padding: 12px 20px;
+            background: #16213e;
+            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+
+        .legend-color {
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .checkpoint-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: flex-start; }
+            .controls { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Plateau Moto - Parcours</h1>
+        <div class="controls">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="btn-route active" data-route="lent">Lent</button>
+                <button class="btn-route" data-route="rapide">Rapide</button>
+            </div>
+            <select id="variant-select">
+                <option value="1">Parcours 1</option>
+                <option value="2">Parcours 2</option>
+            </select>
+            <button class="btn-draw" id="btn-draw">Dessiner</button>
+            <button class="btn-check" id="btn-check">Verifier</button>
+            <button class="btn-undo" id="btn-undo">Annuler</button>
+            <button class="btn-clear" id="btn-clear">Effacer</button>
+            <button class="btn-show-solution" id="btn-solution">Solution</button>
+        </div>
+    </header>
+
+    <div class="info-bar" id="info-bar"></div>
+    <div class="result-bar" id="result-bar"></div>
+
+    <div class="canvas-container" id="canvas-container">
+        <canvas id="plateau"></canvas>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="legend-color" style="background:#ff6b35;"></div><span>Plots</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#e94560;"></div><span>Portes</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#ffd166;"></div><span>Depart/Arret</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:rgba(0,150,255,0.4);"></div><span>Demi-tour</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:rgba(255,0,0,0.3);"></div><span>Evitement</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:rgba(0,200,100,0.3);"></div><span>Freinage</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#00b4d8;"></div><span>Votre trace</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#06d6a0;"></div><span>Solution</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#4ade80;"></div><span>Checkpoint OK</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#ef4444;"></div><span>Checkpoint rate</span></div>
+    </div>
+
+    <script>
+    (function() {
+        const canvas = document.getElementById('plateau');
+        const ctx = canvas.getContext('2d');
+
+        // -- State --
+        let currentRoute = 'lent';
+        let currentVariant = 1;
+        let isDrawing = false;
+        let drawMode = false;
+        let showSolution = false;
+        let paths = [];
+        let currentPath = [];
+        let checkpointResults = null; // null = not checked yet
+
+        // -- Layout constants --
+        const SCALE = 7;
+        const PW = 130, PH = 80;
+        const OX = 30, OY = 30;
+
+        canvas.width = PW * SCALE + OX * 2;
+        canvas.height = PH * SCALE + OY * 2;
+
+        function mx(m) { return OX + m * SCALE; }
+        function my(m) { return OY + m * SCALE; }
+
+        // ========== PLATEAU ELEMENTS ==========
+
+        // Parcours lent - cote gauche
+        const LENT = {
+            depart:  { x: 8, y: 55, w: 10, h: 5 },
+            arret:   { x: 8, y: 65, w: 10, h: 4 },
+            porte_haut: [{ x: 10, y: 48 }, { x: 20, y: 48 }],
+            slalom: [
+                { x: 15, y: 43 },
+                { x: 15, y: 36 },
+                { x: 15, y: 29 },
+                { x: 15, y: 22 },
+                { x: 15, y: 15 },
+            ],
+            porte_bas: [{ x: 10, y: 11 }, { x: 20, y: 11 }],
+            demiTour: { x: 4, y: 1, w: 22, h: 10 },
+        };
+
+        // Parcours rapide - cote droit
+        const RAPIDE = {
+            depart: { x: 80, y: 55, w: 10, h: 5 },
+            porte_haut: [{ x: 63, y: 48 }, { x: 73, y: 48 }],
+            slalom: [
+                { x: 68, y: 43 },
+                { x: 68, y: 36 },
+                { x: 68, y: 29 },
+                { x: 68, y: 22 },
+                { x: 68, y: 15 },
+            ],
+            virage: { x: 56, y: 1, w: 24, h: 9 },
+            // Evitement
+            evit_entree: [{ x: 90, y: 42 }, { x: 100, y: 42 }],
+            evit_gauche: [{ x: 90, y: 34 }, { x: 95, y: 28 }],
+            evit_droite: [{ x: 100, y: 34 }, { x: 95, y: 28 }],
+            evitement: { x: 88, y: 26, w: 15, h: 18 },
+            // Freinage
+            freinage: { x: 88, y: 6, w: 15, h: 20 },
+            frein_lignes: [
+                { y: 22, label: "30 km/h", color: "#4ade80" },
+                { y: 17, label: "40 km/h (sec)", color: "#ffd166" },
+                { y: 12, label: "40 km/h (pluie)", color: "#ef4444" },
+            ],
+        };
+
+        // ========== SOLUTION CHECKPOINTS ==========
+        // Each checkpoint: {x, y, radius} - the user's path must pass within `radius` meters
+
+        function getCheckpoints(route, variant) {
+            const R = 4.5; // tolerance radius in meters
+            if (route === 'lent') {
+                if (variant === 1) {
+                    return [
+                        { x: 13, y: 57, r: R, label: "Depart" },
+                        { x: 15, y: 48, r: R, label: "Porte entree" },
+                        { x: 11, y: 43, r: 3.5, label: "Gauche S1" },
+                        { x: 19, y: 36, r: 3.5, label: "Droite S2" },
+                        { x: 11, y: 29, r: 3.5, label: "Gauche S3" },
+                        { x: 19, y: 22, r: 3.5, label: "Droite S4" },
+                        { x: 11, y: 15, r: 3.5, label: "Gauche S5" },
+                        { x: 15, y: 11, r: R, label: "Porte demi-tour" },
+                        { x: 8, y: 5, r: 5, label: "Demi-tour gauche" },
+                        { x: 20, y: 5, r: 5, label: "Demi-tour retour" },
+                        { x: 15, y: 11, r: R, label: "Porte retour" },
+                        { x: 19, y: 15, r: 3.5, label: "Droite S5 retour" },
+                        { x: 11, y: 22, r: 3.5, label: "Gauche S4 retour" },
+                        { x: 19, y: 29, r: 3.5, label: "Droite S3 retour" },
+                        { x: 11, y: 36, r: 3.5, label: "Gauche S2 retour" },
+                        { x: 19, y: 43, r: 3.5, label: "Droite S1 retour" },
+                        { x: 15, y: 48, r: R, label: "Porte sortie" },
+                        { x: 13, y: 66, r: 5, label: "Arret precision" },
+                    ];
+                } else {
+                    return [
+                        { x: 13, y: 57, r: R, label: "Depart" },
+                        { x: 15, y: 48, r: R, label: "Porte entree" },
+                        { x: 19, y: 43, r: 3.5, label: "Droite S1" },
+                        { x: 11, y: 36, r: 3.5, label: "Gauche S2" },
+                        { x: 19, y: 29, r: 3.5, label: "Droite S3" },
+                        { x: 11, y: 22, r: 3.5, label: "Gauche S4" },
+                        { x: 19, y: 15, r: 3.5, label: "Droite S5" },
+                        { x: 15, y: 11, r: R, label: "Porte demi-tour" },
+                        { x: 22, y: 5, r: 5, label: "Demi-tour droite" },
+                        { x: 8, y: 5, r: 5, label: "Demi-tour retour" },
+                        { x: 15, y: 11, r: R, label: "Porte retour" },
+                        { x: 11, y: 15, r: 3.5, label: "Gauche S5 retour" },
+                        { x: 19, y: 22, r: 3.5, label: "Droite S4 retour" },
+                        { x: 11, y: 29, r: 3.5, label: "Gauche S3 retour" },
+                        { x: 19, y: 36, r: 3.5, label: "Droite S2 retour" },
+                        { x: 11, y: 43, r: 3.5, label: "Gauche S1 retour" },
+                        { x: 15, y: 48, r: R, label: "Porte sortie" },
+                        { x: 13, y: 66, r: 5, label: "Arret precision" },
+                    ];
+                }
+            } else {
+                // Rapide
+                if (variant === 1) {
+                    return [
+                        { x: 85, y: 57, r: R, label: "Depart" },
+                        { x: 68, y: 48, r: R, label: "Porte slalom" },
+                        { x: 64, y: 43, r: 3.5, label: "Gauche R1" },
+                        { x: 72, y: 36, r: 3.5, label: "Droite R2" },
+                        { x: 64, y: 29, r: 3.5, label: "Gauche R3" },
+                        { x: 72, y: 22, r: 3.5, label: "Droite R4" },
+                        { x: 64, y: 15, r: 3.5, label: "Gauche R5" },
+                        { x: 65, y: 5, r: 6, label: "Virage" },
+                        { x: 78, y: 5, r: 6, label: "Sortie virage" },
+                        { x: 95, y: 42, r: R, label: "Entree evitement" },
+                        { x: 91, y: 34, r: 4, label: "Evitement gauche" },
+                        { x: 95, y: 28, r: R, label: "Sortie evitement" },
+                        { x: 95, y: 15, r: 6, label: "Freinage" },
+                    ];
+                } else {
+                    return [
+                        { x: 85, y: 57, r: R, label: "Depart" },
+                        { x: 68, y: 48, r: R, label: "Porte slalom" },
+                        { x: 72, y: 43, r: 3.5, label: "Droite R1" },
+                        { x: 64, y: 36, r: 3.5, label: "Gauche R2" },
+                        { x: 72, y: 29, r: 3.5, label: "Droite R3" },
+                        { x: 64, y: 22, r: 3.5, label: "Gauche R4" },
+                        { x: 72, y: 15, r: 3.5, label: "Droite R5" },
+                        { x: 75, y: 5, r: 6, label: "Virage" },
+                        { x: 62, y: 5, r: 6, label: "Sortie virage" },
+                        { x: 95, y: 42, r: R, label: "Entree evitement" },
+                        { x: 99, y: 34, r: 4, label: "Evitement droite" },
+                        { x: 95, y: 28, r: R, label: "Sortie evitement" },
+                        { x: 95, y: 15, r: 6, label: "Freinage" },
+                    ];
+                }
+            }
+        }
+
+        // Solution path for display
+        function getSolutionPath(route, variant) {
+            const cp = getCheckpoints(route, variant);
+            return cp.map(c => ({ x: c.x, y: c.y }));
+        }
+
+        // ========== VALIDATION ==========
+
+        function validatePath() {
+            const allPoints = paths.flat();
+            if (allPoints.length < 10) {
+                showResult('fail', 'Dessinez un parcours complet avant de verifier !', '');
+                return;
+            }
+
+            const checkpoints = getCheckpoints(currentRoute, currentVariant);
+            const results = [];
+
+            // For each checkpoint, check if any drawn point passes within range
+            // Also verify ORDER: checkpoints must be hit in sequence
+            let searchStart = 0;
+
+            for (let i = 0; i < checkpoints.length; i++) {
+                const cp = checkpoints[i];
+                let hit = false;
+                let hitIndex = -1;
+
+                // Search from where we left off to allow going forward only
+                for (let j = searchStart; j < allPoints.length; j++) {
+                    // Convert pixel coords back to meters
+                    const px = (allPoints[j].x - OX) / SCALE;
+                    const py = (allPoints[j].y - OY) / SCALE;
+                    const dist = Math.sqrt((px - cp.x) ** 2 + (py - cp.y) ** 2);
+
+                    if (dist <= cp.r) {
+                        hit = true;
+                        hitIndex = j;
+                        break;
+                    }
+                }
+
+                if (hit) {
+                    searchStart = hitIndex; // next checkpoint must come after this
+                }
+
+                results.push({ ...cp, hit });
+            }
+
+            checkpointResults = results;
+
+            const passed = results.filter(r => r.hit).length;
+            const total = results.length;
+            const pct = Math.round((passed / total) * 100);
+
+            let missed = results.filter(r => !r.hit).map(r => r.label);
+
+            if (pct === 100) {
+                showResult('success',
+                    `PARFAIT ! ${passed}/${total} checkpoints valides (${pct}%)`,
+                    'Vous maitrisez ce parcours !');
+            } else if (pct >= 70) {
+                showResult('partial',
+                    `PRESQUE ! ${passed}/${total} checkpoints (${pct}%)`,
+                    `Rates: ${missed.join(', ')}`);
+            } else {
+                showResult('fail',
+                    `A RETRAVAILLER : ${passed}/${total} checkpoints (${pct}%)`,
+                    `Rates: ${missed.join(', ')}`);
+            }
+
+            render();
+        }
+
+        function showResult(type, title, detail) {
+            const bar = document.getElementById('result-bar');
+            bar.className = 'result-bar ' + type;
+            bar.innerHTML = `${title}<div class="result-details">${detail}</div>`;
+        }
+
+        // ========== DRAWING ==========
+
+        function clearAll() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawGround() {
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#4a5568';
+            ctx.fillRect(mx(0), my(0), PW * SCALE, PH * SCALE);
+
+            // Subtle grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+            ctx.lineWidth = 0.5;
+            for (let x = 0; x <= PW; x += 5) {
+                ctx.beginPath(); ctx.moveTo(mx(x), my(0)); ctx.lineTo(mx(x), my(PH)); ctx.stroke();
+            }
+            for (let y = 0; y <= PH; y += 5) {
+                ctx.beginPath(); ctx.moveTo(mx(0), my(y)); ctx.lineTo(mx(PW), my(y)); ctx.stroke();
+            }
+        }
+
+        function drawRect(zone, fillColor, strokeColor, label) {
+            ctx.fillStyle = fillColor;
+            ctx.fillRect(mx(zone.x), my(zone.y), zone.w * SCALE, zone.h * SCALE);
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(mx(zone.x), my(zone.y), zone.w * SCALE, zone.h * SCALE);
+            if (label) {
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 10px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(label, mx(zone.x + zone.w / 2), my(zone.y + zone.h / 2) + 4);
+            }
+        }
+
+        function drawCone(x, y, label, color = '#ff6b35') {
+            const px = mx(x), py = my(y);
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath(); ctx.arc(px + 2, py + 2, 5, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = color;
+            ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+            if (label) {
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText(label, px, py - 10);
+            }
+        }
+
+        function drawGate(p1, p2, color = '#e94560') {
+            ctx.strokeStyle = color; ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath(); ctx.moveTo(mx(p1.x), my(p1.y)); ctx.lineTo(mx(p2.x), my(p2.y)); ctx.stroke();
+            ctx.setLineDash([]);
+            drawCone(p1.x, p1.y, null, color);
+            drawCone(p2.x, p2.y, null, color);
+        }
+
+        function drawPlateau() {
+            // -- LENT --
+            drawRect(LENT.depart, 'rgba(255,209,102,0.2)', '#ffd166', 'Depart');
+            drawRect(LENT.arret, 'rgba(255,209,102,0.25)', '#ffd166', 'Arret');
+            drawRect(LENT.demiTour, 'rgba(0,150,255,0.15)', '#0096ff', 'Demi-tour');
+
+            drawGate(LENT.porte_haut[0], LENT.porte_haut[1]);
+            drawGate(LENT.porte_bas[0], LENT.porte_bas[1]);
+
+            LENT.slalom.forEach((c, i) => drawCone(c.x, c.y, 'S' + (i + 1)));
+
+            // -- RAPIDE --
+            drawRect(RAPIDE.depart, 'rgba(255,209,102,0.2)', '#ffd166', 'Depart');
+            drawRect(RAPIDE.virage, 'rgba(100,100,255,0.1)', '#6464ff', 'Virage');
+            drawRect(RAPIDE.evitement, 'rgba(255,0,0,0.12)', '#ff4444', 'Evitement');
+            drawRect(RAPIDE.freinage, 'rgba(0,200,100,0.12)', '#00c864', 'Freinage');
+
+            drawGate(RAPIDE.porte_haut[0], RAPIDE.porte_haut[1]);
+            drawGate(RAPIDE.evit_entree[0], RAPIDE.evit_entree[1], '#ff4444');
+            drawGate(RAPIDE.evit_gauche[0], RAPIDE.evit_gauche[1], '#ff8888');
+            drawGate(RAPIDE.evit_droite[0], RAPIDE.evit_droite[1], '#ff8888');
+
+            RAPIDE.slalom.forEach((c, i) => drawCone(c.x, c.y, 'R' + (i + 1)));
+
+            // Frein lines
+            RAPIDE.frein_lignes.forEach(l => {
+                const y = my(l.y);
+                const x1 = mx(RAPIDE.freinage.x);
+                const x2 = mx(RAPIDE.freinage.x + RAPIDE.freinage.w);
+                ctx.strokeStyle = l.color; ctx.lineWidth = 2;
+                ctx.setLineDash([8, 4]);
+                ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#ccc'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left';
+                ctx.fillText(l.label, x2 + 4, y + 3);
+            });
+
+            // Separator
+            ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+            ctx.lineWidth = 2; ctx.setLineDash([10, 10]);
+            ctx.beginPath(); ctx.moveTo(mx(48), my(0)); ctx.lineTo(mx(48), my(PH)); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Section labels
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('PARCOURS LENT', mx(15), my(PH - 1));
+            ctx.fillText('PARCOURS RAPIDE', mx(85), my(PH - 1));
+        }
+
+        function drawSmoothPath(points, color, width, dashed) {
+            if (points.length < 2) return;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            if (dashed) ctx.setLineDash([10, 6]);
+            ctx.beginPath();
+            ctx.moveTo(mx(points[0].x), my(points[0].y));
+            for (let i = 1; i < points.length - 1; i++) {
+                const xc = (mx(points[i].x) + mx(points[i + 1].x)) / 2;
+                const yc = (my(points[i].y) + my(points[i + 1].y)) / 2;
+                ctx.quadraticCurveTo(mx(points[i].x), my(points[i].y), xc, yc);
+            }
+            const last = points[points.length - 1];
+            ctx.lineTo(mx(last.x), my(last.y));
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Arrow
+            if (points.length >= 2) {
+                const prev = points[points.length - 2];
+                const angle = Math.atan2(my(last.y) - my(prev.y), mx(last.x) - mx(prev.x));
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(mx(last.x), my(last.y));
+                ctx.lineTo(mx(last.x) - 10 * Math.cos(angle - 0.4), my(last.y) - 10 * Math.sin(angle - 0.4));
+                ctx.lineTo(mx(last.x) - 10 * Math.cos(angle + 0.4), my(last.y) - 10 * Math.sin(angle + 0.4));
+                ctx.closePath(); ctx.fill();
+            }
+
+            // Start dot
+            ctx.fillStyle = color;
+            ctx.beginPath(); ctx.arc(mx(points[0].x), my(points[0].y), 5, 0, Math.PI * 2); ctx.fill();
+        }
+
+        function drawCheckpoints() {
+            if (!checkpointResults) return;
+
+            checkpointResults.forEach(cp => {
+                const px = mx(cp.x), py = my(cp.y);
+                const r = cp.r * SCALE;
+
+                // Circle
+                ctx.beginPath();
+                ctx.arc(px, py, r, 0, Math.PI * 2);
+                ctx.fillStyle = cp.hit ? 'rgba(74,222,128,0.15)' : 'rgba(239,68,68,0.15)';
+                ctx.fill();
+                ctx.strokeStyle = cp.hit ? '#4ade80' : '#ef4444';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Icon
+                ctx.font = 'bold 14px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = cp.hit ? '#4ade80' : '#ef4444';
+                ctx.fillText(cp.hit ? '\u2713' : '\u2717', px, py + 5);
+
+                // Label
+                ctx.font = '8px sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.fillText(cp.label, px, py - r - 4);
+            });
+        }
+
+        function drawUserPaths() {
+            const all = [...paths];
+            if (currentPath.length > 0) all.push(currentPath);
+            all.forEach(path => {
+                if (path.length < 2) return;
+                ctx.strokeStyle = '#00b4d8';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.globalAlpha = 0.85;
+                ctx.beginPath();
+                ctx.moveTo(path[0].x, path[0].y);
+                for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            });
+        }
+
+        function render() {
+            clearAll();
+            drawGround();
+            drawPlateau();
+
+            if (showSolution) {
+                const sol = getSolutionPath(currentRoute, currentVariant);
+                drawSmoothPath(sol, '#06d6a0', 3, true);
+            }
+
+            drawUserPaths();
+            drawCheckpoints();
+        }
+
+        // ========== EVENTS ==========
+
+        function getPos(e) {
+            const r = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / r.width;
+            const scaleY = canvas.height / r.height;
+            if (e.touches) {
+                return { x: (e.touches[0].clientX - r.left) * scaleX, y: (e.touches[0].clientY - r.top) * scaleY };
+            }
+            return { x: (e.clientX - r.left) * scaleX, y: (e.clientY - r.top) * scaleY };
+        }
+
+        canvas.addEventListener('mousedown', e => {
+            if (!drawMode) return;
+            isDrawing = true;
+            currentPath = [getPos(e)];
+            checkpointResults = null;
+            document.getElementById('result-bar').className = 'result-bar';
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            if (!isDrawing) return;
+            currentPath.push(getPos(e));
+            render();
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            if (!isDrawing) return;
+            isDrawing = false;
+            if (currentPath.length > 1) paths.push([...currentPath]);
+            currentPath = [];
+        });
+
+        canvas.addEventListener('touchstart', e => {
+            if (!drawMode) return;
+            e.preventDefault();
+            isDrawing = true;
+            currentPath = [getPos(e)];
+            checkpointResults = null;
+            document.getElementById('result-bar').className = 'result-bar';
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', e => {
+            if (!isDrawing) return;
+            e.preventDefault();
+            currentPath.push(getPos(e));
+            render();
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', e => {
+            if (!isDrawing) return;
+            e.preventDefault();
+            isDrawing = false;
+            if (currentPath.length > 1) paths.push([...currentPath]);
+            currentPath = [];
+        });
+
+        // Buttons
+        document.getElementById('btn-draw').addEventListener('click', function() {
+            drawMode = !drawMode;
+            this.classList.toggle('active', drawMode);
+            this.textContent = drawMode ? 'Dessiner (ON)' : 'Dessiner';
+            canvas.style.cursor = drawMode ? 'crosshair' : 'default';
+        });
+
+        document.getElementById('btn-check').addEventListener('click', validatePath);
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            paths = []; currentPath = []; checkpointResults = null;
+            document.getElementById('result-bar').className = 'result-bar';
+            render();
+        });
+
+        document.getElementById('btn-undo').addEventListener('click', () => {
+            paths.pop(); checkpointResults = null;
+            document.getElementById('result-bar').className = 'result-bar';
+            render();
+        });
+
+        document.getElementById('btn-solution').addEventListener('click', function() {
+            showSolution = !showSolution;
+            this.classList.toggle('active', showSolution);
+            this.textContent = showSolution ? 'Solution (ON)' : 'Solution';
+            render();
+        });
+
+        document.querySelectorAll('.btn-route').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.btn-route').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentRoute = this.dataset.route;
+                paths = []; currentPath = []; checkpointResults = null;
+                document.getElementById('result-bar').className = 'result-bar';
+                updateInfo(); render();
+            });
+        });
+
+        document.getElementById('variant-select').addEventListener('change', function() {
+            currentVariant = parseInt(this.value);
+            paths = []; currentPath = []; checkpointResults = null;
+            document.getElementById('result-bar').className = 'result-bar';
+            updateInfo(); render();
+        });
+
+        // Make canvas responsive
+        function resizeCanvas() {
+            const maxW = window.innerWidth - 40;
+            const ratio = canvas.height / canvas.width;
+            if (canvas.width > maxW) {
+                canvas.style.width = maxW + 'px';
+                canvas.style.height = (maxW * ratio) + 'px';
+            } else {
+                canvas.style.width = canvas.width + 'px';
+                canvas.style.height = canvas.height + 'px';
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const descriptions = {
+            lent: {
+                1: "<strong>Parcours lent 1 :</strong> Depart &rarr; Porte &rarr; Slalom (gauche d'abord) &rarr; Porte &rarr; Demi-tour par la gauche &rarr; Porte &rarr; Slalom retour (inverse) &rarr; Porte &rarr; Arret de precision",
+                2: "<strong>Parcours lent 2 :</strong> Depart &rarr; Porte &rarr; Slalom (droite d'abord) &rarr; Porte &rarr; Demi-tour par la droite &rarr; Porte &rarr; Slalom retour (inverse) &rarr; Porte &rarr; Arret de precision",
+            },
+            rapide: {
+                1: "<strong>Parcours rapide 1 :</strong> Depart lance &rarr; Slalom rapide (gauche d'abord) &rarr; Virage &rarr; Evitement par la GAUCHE &rarr; Freinage d'urgence",
+                2: "<strong>Parcours rapide 2 :</strong> Depart lance &rarr; Slalom rapide (droite d'abord) &rarr; Virage &rarr; Evitement par la DROITE &rarr; Freinage d'urgence",
+            },
+        };
+
+        function updateInfo() {
+            document.getElementById('info-bar').innerHTML = descriptions[currentRoute][currentVariant];
+        }
+
+        updateInfo();
+        render();
+    })();
+    </script>
+</body>
+</html>
