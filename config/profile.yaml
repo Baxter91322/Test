@@ -1,0 +1,28 @@
+# Your profile — used by Claude to write drafts in your voice.
+# Edit this with your real info before running.
+
+name: "Your Full Name"
+current_role: "Founder / Investor / Operator (edit this)"
+location: "Paris, France"
+
+background: |
+  2-4 sentences about who you are: education, past roles, what you've built or
+  invested in, why a Scandinavian VC should care about you.
+
+what_you_want: |
+  One sentence on the ask: e.g. "exploring opportunities in pre-seed
+  investment roles at Nordic funds with a thesis on climate tech."
+
+thesis_or_focus: |
+  Sectors and stages you care about: e.g. "early-stage climate, deeptech,
+  enterprise SaaS — pre-seed to Series A."
+
+signature: |
+  Your Name
+  +33 6 XX XX XX XX | linkedin.com/in/yourhandle
+
+# Tone the email should adopt.
+tone:
+  language: "english"   # english | french | nordic-friendly-english
+  register: "warm-professional, concise, no fluff, no superlatives"
+  length: "120-180 words max"

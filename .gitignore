@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.env.local
+*.db
+*.sqlite
+*.sqlite3
+data/
+secrets/
+gmail_token.json
+gmail_credentials.json
+.DS_Store

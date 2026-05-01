@@ -1,0 +1,58 @@
+name: daily-outreach
+
+on:
+  schedule:
+    # 07:30 UTC = 08:30 Paris winter / 09:30 Paris summer.
+    - cron: "30 7 * * 1-5"
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write   # to commit the updated SQLite DB back
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: pip install -e .
+
+      - name: Restore Gmail token
+        env:
+          GMAIL_CREDENTIALS_JSON: ${{ secrets.GMAIL_CREDENTIALS_JSON }}
+          GMAIL_TOKEN_JSON: ${{ secrets.GMAIL_TOKEN_JSON }}
+        run: |
+          mkdir -p secrets
+          printf '%s' "$GMAIL_CREDENTIALS_JSON" > secrets/gmail_credentials.json
+          printf '%s' "$GMAIL_TOKEN_JSON"       > secrets/gmail_token.json
+
+      - name: Refresh contacts (weekly only)
+        if: github.event.schedule == '30 7 * * 1' || github.event_name == 'workflow_dispatch'
+        env:
+          DATABASE_PATH: data/contacts.db
+          USER_AGENT: "ScandiOutreachBot/0.1 (+https://github.com/${{ github.repository }})"
+        run: scandi-outreach scrape
+
+      - name: Generate today's drafts
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_CREDENTIALS_PATH: secrets/gmail_credentials.json
+          GMAIL_TOKEN_PATH: secrets/gmail_token.json
+          DATABASE_PATH: data/contacts.db
+          DAILY_DRAFT_LIMIT: "5"
+        run: scandi-outreach daily
+
+      - name: Persist DB + refreshed token
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name  "scandi-outreach-bot"
+          git add data/contacts.db
+          git diff --cached --quiet || git commit -m "chore: daily outreach state"
+          git push || echo "nothing to push"

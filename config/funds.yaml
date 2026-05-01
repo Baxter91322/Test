@@ -1,0 +1,381 @@
+# Curated Scandinavian VC ecosystem.
+# Add/remove freely. The scraper hits `team_url` (and falls back to homepage)
+# to discover role-based + listed emails. Never invent emails — leave blank.
+#
+# Fields:
+#   slug: stable id, no spaces
+#   name: display
+#   country: SE | DK | NO | FI | IS | NORDIC
+#   kind: vc | accelerator | incubator | studio | family-office | gov
+#   homepage: required
+#   team_url: page listing partners / team (preferred scrape target)
+#   thesis: one-line investment focus (used by Claude for personalization)
+#   stages: list, e.g. [pre-seed, seed, series-a]
+#   sectors: list
+
+funds:
+  # ─── Sweden ─────────────────────────────────────────────────
+  - slug: creandum
+    name: Creandum
+    country: SE
+    kind: vc
+    homepage: https://www.creandum.com
+    team_url: https://www.creandum.com/people/
+    thesis: "Backing exceptional founders building category-defining tech companies."
+    stages: [seed, series-a, series-b]
+    sectors: [consumer, fintech, saas, deeptech, climate]
+
+  - slug: eqt-ventures
+    name: EQT Ventures
+    country: SE
+    kind: vc
+    homepage: https://eqtventures.com
+    team_url: https://eqtventures.com/team
+    thesis: "Pan-European generalist fund backing visionary founders from seed to growth."
+    stages: [seed, series-a, series-b]
+    sectors: [generalist, saas, marketplace, deeptech]
+
+  - slug: northzone
+    name: Northzone
+    country: SE
+    kind: vc
+    homepage: https://northzone.com
+    team_url: https://northzone.com/team/
+    thesis: "Multi-stage fund partnering with bold founders from inception to IPO."
+    stages: [seed, series-a, series-b, growth]
+    sectors: [consumer, fintech, marketplace, web3, saas]
+
+  - slug: industrifonden
+    name: Industrifonden
+    country: SE
+    kind: vc
+    homepage: https://industrifonden.com
+    team_url: https://industrifonden.com/team/
+    thesis: "Long-term capital for Swedish deeptech, life sciences, and industrial transformation."
+    stages: [seed, series-a, series-b]
+    sectors: [deeptech, life-sciences, industrial, climate]
+
+  - slug: norrsken-vc
+    name: Norrsken VC
+    country: SE
+    kind: vc
+    homepage: https://www.norrsken.org/vc
+    team_url: https://www.norrsken.org/vc/team
+    thesis: "Europe's largest impact VC — startups solving humanity's greatest challenges."
+    stages: [seed, series-a]
+    sectors: [climate, healthcare, education, fintech-impact]
+
+  - slug: luminar-ventures
+    name: Luminar Ventures
+    country: SE
+    kind: vc
+    homepage: https://www.luminarventures.com
+    team_url: https://www.luminarventures.com/team
+    thesis: "Early-stage Nordic tech: SaaS, fintech, marketplaces."
+    stages: [seed, series-a]
+    sectors: [saas, fintech, marketplace]
+
+  - slug: pale-blue-dot
+    name: Pale Blue Dot
+    country: SE
+    kind: vc
+    homepage: https://paleblue.vc
+    team_url: https://paleblue.vc/team
+    thesis: "Pre-seed and seed climate tech across Europe."
+    stages: [pre-seed, seed]
+    sectors: [climate]
+
+  - slug: spintop-ventures
+    name: Spintop Ventures
+    country: SE
+    kind: vc
+    homepage: https://www.spintopventures.com
+    team_url: https://www.spintopventures.com/about-us
+    thesis: "Nordic B2B software at seed and Series A."
+    stages: [seed, series-a]
+    sectors: [b2b, saas, deeptech]
+
+  - slug: kinnevik
+    name: Kinnevik
+    country: SE
+    kind: vc
+    homepage: https://www.kinnevik.com
+    team_url: https://www.kinnevik.com/about-us/our-people/
+    thesis: "Long-term capital for digital businesses with global ambitions."
+    stages: [series-a, series-b, growth]
+    sectors: [healthcare, fintech, consumer, climate]
+
+  - slug: brightly-ventures
+    name: Brightly Ventures
+    country: SE
+    kind: vc
+    homepage: https://www.brightly.vc
+    team_url: https://www.brightly.vc/team
+    thesis: "Pre-seed climate tech across the Nordics."
+    stages: [pre-seed, seed]
+    sectors: [climate, sustainability]
+
+  # ─── Denmark ────────────────────────────────────────────────
+  - slug: heartcore
+    name: Heartcore Capital
+    country: DK
+    kind: vc
+    homepage: https://www.heartcore.com
+    team_url: https://www.heartcore.com/team
+    thesis: "Consumer-focused European VC backing founders from seed to Series B."
+    stages: [seed, series-a, series-b]
+    sectors: [consumer, marketplace, fintech, health]
+
+  - slug: byfounders
+    name: byFounders
+    country: DK
+    kind: vc
+    homepage: https://byfounders.vc
+    team_url: https://byfounders.vc/team
+    thesis: "Nordic + Baltic seed fund backed by 30+ founder LPs."
+    stages: [pre-seed, seed]
+    sectors: [generalist, saas, climate, health]
+
+  - slug: preseed-ventures
+    name: PreSeed Ventures
+    country: DK
+    kind: vc
+    homepage: https://preseedventures.dk
+    team_url: https://preseedventures.dk/team/
+    thesis: "Earliest-stage Danish deeptech and software."
+    stages: [pre-seed]
+    sectors: [deeptech, saas, life-sciences]
+
+  - slug: seed-capital
+    name: Seed Capital
+    country: DK
+    kind: vc
+    homepage: https://seedcapital.dk
+    team_url: https://seedcapital.dk/team/
+    thesis: "Denmark's largest early-stage VC."
+    stages: [seed, series-a]
+    sectors: [generalist, saas, fintech]
+
+  - slug: maersk-growth
+    name: Maersk Growth
+    country: DK
+    kind: vc
+    homepage: https://www.maerskgrowth.com
+    team_url: https://www.maerskgrowth.com/team
+    thesis: "Corporate VC investing in logistics, supply-chain, and trade tech."
+    stages: [seed, series-a, series-b]
+    sectors: [logistics, supply-chain, climate]
+
+  - slug: vaekstfonden
+    name: Vækstfonden (EIFO)
+    country: DK
+    kind: gov
+    homepage: https://eifo.dk/en
+    team_url: https://eifo.dk/en/about-us/employees
+    thesis: "Danish state investment fund backing early-stage tech and growth."
+    stages: [seed, series-a, series-b, growth]
+    sectors: [generalist, deeptech, climate, life-sciences]
+
+  # ─── Norway ─────────────────────────────────────────────────
+  - slug: skyfall-ventures
+    name: Skyfall Ventures
+    country: NO
+    kind: vc
+    homepage: https://www.skyfallventures.com
+    team_url: https://www.skyfallventures.com/team
+    thesis: "Norwegian early-stage software and consumer."
+    stages: [pre-seed, seed]
+    sectors: [saas, consumer, marketplace]
+
+  - slug: idekapital
+    name: Idékapital
+    country: NO
+    kind: vc
+    homepage: https://www.idekapital.no
+    team_url: https://www.idekapital.no/team
+    thesis: "Nordic B2B software, Series A and beyond."
+    stages: [series-a, series-b]
+    sectors: [b2b, saas]
+
+  - slug: alliance-venture
+    name: Alliance Venture
+    country: NO
+    kind: vc
+    homepage: https://www.alliancevc.com
+    team_url: https://www.alliancevc.com/team
+    thesis: "Norwegian early-stage tech — software, hardware, climate."
+    stages: [seed, series-a]
+    sectors: [saas, deeptech, climate]
+
+  - slug: nysno
+    name: Nysnø Climate Investments
+    country: NO
+    kind: vc
+    homepage: https://nysnoclimate.com
+    team_url: https://nysnoclimate.com/about/
+    thesis: "Norwegian state-owned climate VC."
+    stages: [series-a, series-b]
+    sectors: [climate, energy]
+
+  - slug: investinor
+    name: Investinor
+    country: NO
+    kind: gov
+    homepage: https://investinor.no/en
+    team_url: https://investinor.no/en/about/our-team/
+    thesis: "Norwegian government-owned investment company."
+    stages: [seed, series-a, series-b, growth]
+    sectors: [generalist, deeptech, ocean, climate]
+
+  # ─── Finland ────────────────────────────────────────────────
+  - slug: maki-vc
+    name: Maki.vc
+    country: FI
+    kind: vc
+    homepage: https://maki.vc
+    team_url: https://maki.vc/people/
+    thesis: "Pre-seed and seed brand-led + deeptech founders in the Nordics."
+    stages: [pre-seed, seed]
+    sectors: [deeptech, brand, consumer]
+
+  - slug: lifeline-ventures
+    name: Lifeline Ventures
+    country: FI
+    kind: vc
+    homepage: https://lifelineventures.com
+    team_url: https://lifelineventures.com/about/
+    thesis: "Earliest-stage Finnish founders — generalist, founder-friendly."
+    stages: [pre-seed, seed]
+    sectors: [generalist, gaming, health, saas]
+
+  - slug: inventure
+    name: Inventure
+    country: FI
+    kind: vc
+    homepage: https://www.inventure.fi
+    team_url: https://www.inventure.fi/team/
+    thesis: "Nordic + Baltic early-stage tech: AI, consumer, deeptech."
+    stages: [seed, series-a]
+    sectors: [ai, consumer, deeptech, saas]
+
+  - slug: icebreaker
+    name: Icebreaker.vc
+    country: FI
+    kind: vc
+    homepage: https://www.icebreaker.vc
+    team_url: https://www.icebreaker.vc/team
+    thesis: "Pre-team and pre-seed: backing founders before they have a company."
+    stages: [pre-seed]
+    sectors: [generalist, deeptech]
+
+  - slug: nordic-ninja
+    name: NordicNinja
+    country: FI
+    kind: vc
+    homepage: https://nordicninja.vc
+    team_url: https://nordicninja.vc/team
+    thesis: "Nordic + Baltic deeptech and digital, Japan-Europe corridor."
+    stages: [series-a, series-b]
+    sectors: [deeptech, climate, mobility]
+
+  - slug: voima-ventures
+    name: Voima Ventures
+    country: FI
+    kind: vc
+    homepage: https://voimaventures.com
+    team_url: https://voimaventures.com/team/
+    thesis: "Nordic + Baltic deeptech from seed to Series A."
+    stages: [seed, series-a]
+    sectors: [deeptech, materials, quantum, biotech]
+
+  - slug: open-ocean
+    name: Open Ocean
+    country: FI
+    kind: vc
+    homepage: https://openocean.vc
+    team_url: https://openocean.vc/team/
+    thesis: "European data-driven B2B software."
+    stages: [series-a, series-b]
+    sectors: [b2b, data, ai, saas]
+
+  - slug: tesi
+    name: Tesi (Finnish Industry Investment)
+    country: FI
+    kind: gov
+    homepage: https://www.tesi.fi/en/
+    team_url: https://www.tesi.fi/en/about-tesi/personnel/
+    thesis: "Finnish state-owned investment company; co-investor across stages."
+    stages: [seed, series-a, series-b, growth]
+    sectors: [generalist, deeptech, climate]
+
+  # ─── Iceland ────────────────────────────────────────────────
+  - slug: crowberry
+    name: Crowberry Capital
+    country: IS
+    kind: vc
+    homepage: https://www.crowberrycapital.com
+    team_url: https://www.crowberrycapital.com/team
+    thesis: "Icelandic + Nordic early-stage tech."
+    stages: [seed, series-a]
+    sectors: [saas, deeptech, climate]
+
+  - slug: frumtak
+    name: Frumtak Ventures
+    country: IS
+    kind: vc
+    homepage: https://frumtak.is
+    team_url: https://frumtak.is/team/
+    thesis: "Icelandic VC, Series A focus."
+    stages: [series-a, series-b]
+    sectors: [generalist]
+
+  # ─── Pan-Nordic / Studios / Accelerators ────────────────────
+  - slug: antler-nordics
+    name: Antler (Nordics)
+    country: NORDIC
+    kind: studio
+    homepage: https://www.antler.co
+    team_url: https://www.antler.co/team
+    thesis: "Day-zero venture studio operating in Stockholm, Oslo, Copenhagen, Helsinki."
+    stages: [pre-seed]
+    sectors: [generalist]
+
+  - slug: founders
+    name: Founders
+    country: DK
+    kind: studio
+    homepage: https://founders.as
+    team_url: https://founders.as/team
+    thesis: "Copenhagen-based startup studio building companies from scratch."
+    stages: [pre-seed]
+    sectors: [generalist]
+
+  - slug: norrsken-house
+    name: Norrsken House (Stockholm)
+    country: SE
+    kind: incubator
+    homepage: https://www.norrsken.org/house-stockholm
+    team_url: https://www.norrsken.org/about/team
+    thesis: "Impact-focused community + accelerator programs."
+    stages: [pre-seed, seed]
+    sectors: [climate, health, education, impact]
+
+  - slug: wellstreet
+    name: Wellstreet
+    country: SE
+    kind: vc
+    homepage: https://wellstreet.co
+    team_url: https://wellstreet.co/team/
+    thesis: "Stockholm-based pre-seed and seed."
+    stages: [pre-seed, seed]
+    sectors: [generalist]
+
+  - slug: vaekstfonden-startup
+    name: Founderhood (Founders House CPH)
+    country: DK
+    kind: incubator
+    homepage: https://foundershouse.dk
+    team_url: https://foundershouse.dk
+    thesis: "Copenhagen co-working hub for early-stage founders."
+    stages: [pre-seed]
+    sectors: [generalist]
